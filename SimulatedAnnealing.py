@@ -41,10 +41,8 @@ class SimulatedAnnealing:
                                                                                      energy_change, temperature))
                 temperature = temperature * cooling_factor
 
-        # while not (problem.validate_state()):
+        # while not problem.validate_state(problem.get_current_state()):
         #     problem.update_current_state(problem.get_initial_state())
         simulated_annealing()
 
         return problem.get_current_state(), problem.get_cost(problem.get_current_state())
-
-

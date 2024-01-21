@@ -34,6 +34,7 @@ class TSP(Problem):
 
     def generate_random_future_state(self):
         new_route = self.state.copy()
+        random.shuffle(new_route)
         i, j = random.sample(range(len(new_route)), 2)
         new_route[i], new_route[j] = new_route[j], new_route[i]
         return new_route

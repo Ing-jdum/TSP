@@ -1,11 +1,16 @@
 from neo4j import GraphDatabase
 
+
 class VRPGraphCreator:
     def __init__(self, uri, user, password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
 
     def close(self):
         self.driver.close()
+
+    @staticmethod
+    def _create_charging_station(tx, station_name):
+        tx.run("MERGE (:ChargingStation {name: $station_name})", station_name=station_name)
 
     def create_vrp_graph(self):
         with self.driver.session() as session:
@@ -30,6 +35,14 @@ class VRPGraphCreator:
             ]
             for start, end, distance in connections:
                 session.execute_write(self._create_connection, start, end, distance)
+
+            # Create a Charging Station
+            session.execute_write(self._create_charging_station, 'ChargingStation1')
+
+            # Update Connections to include Charging Station
+            # Assuming equal distance between locations and the charging station
+            session.execute_write(self._create_connection, 'Location1', 'ChargingStation1', 4)
+            session.execute_write(self._create_connection, 'ChargingStation1', 'Location4', 4)
 
     @staticmethod
     def _create_hub(tx):
