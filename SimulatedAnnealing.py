@@ -62,5 +62,4 @@ class SimulatedAnnealing:
                     temperature = temperature * cooling_factor
 
             is_solution_valid = problem.validate_state(problem.get_current_state())
-            print(best_solution, best_fitness)
         return best_solution, 1/best_fitness

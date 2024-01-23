@@ -25,7 +25,9 @@ class VRPGraphCreator:
                 ('Location1', 'Location2', 5),
                 ('Location2', 'Location3', 6),
                 ('Location3', 'Location4', 7),
-                ('Location4', 'Location1', 8)
+                ('Location4', 'Location1', 8),
+                ('Location4', 'Location2', 7),
+                ('Location3', 'Location1', 4)
             ]
             for start, end, distance in connections:
                 session.execute_write(self._create_connection, start, end, distance)

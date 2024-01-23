@@ -4,7 +4,8 @@ from interfaces import Problem
 
 
 class TSP(Problem):
-    def __init__(self, graph_data):
+    def __init__(self, graph_data, start_node):
+        self.start_node = start_node
         self.graph_data = graph_data
         self.distance_dict = self.get_distance_dict()
         self.initial_state = self.get_nodes()
@@ -15,7 +16,8 @@ class TSP(Problem):
         for start, end in self.distance_dict.keys():
             locations.add(start)
             locations.add(end)
-        return list(locations)
+        locations = list(locations - {self.start_node})
+        return [self.start_node] + locations
 
     def get_distance_dict(self):
         data = self.graph_data
@@ -46,37 +48,35 @@ class TSP(Problem):
             state = self.swap_routes()
         return state
 
-
     def shuffle(self):
-        new_route = self.state.copy()
+        new_route = self.state[1:].copy()  # Exclude the first element
         random.shuffle(new_route)
-        return new_route
-
+        return [self.state[0]] + new_route  # Reinsert the first element
 
     def inverse(self):
         new_route = self.state.copy()
-        i, j = sorted(random.sample(range(len(new_route)), 2))
+        i, j = sorted(random.sample(range(1, len(new_route)), 2))  # Start from second element
         new_route[i:j + 1] = reversed(new_route[i:j + 1])
         return new_route
 
     def swap(self):
         new_route = self.state.copy()
-        i, j = random.sample(range(len(new_route)), 2)
+        i, j = random.sample(range(1, len(new_route)), 2)  # Start from second element
         new_route[i], new_route[j] = new_route[j], new_route[i]
         return new_route
 
     def insert(self):
         new_route = self.state.copy()
         random_node = random.choice(self.get_nodes())
-        insert_position = random.randint(0, len(new_route))
+        insert_position = random.randint(1, len(new_route))  # Start from second position
         new_route.insert(insert_position, random_node)
         return new_route
 
     def swap_routes(self):
         new_route = self.state.copy()
         n = len(new_route)
-        i, j = sorted(random.sample(range(n), 2))
-        k, l = sorted(random.sample(range(n), 2))
+        i, j = sorted(random.sample(range(1, n), 2))  # Start from second element
+        k, l = sorted(random.sample(range(1, n), 2))  # Start from second element
 
         if j < k:
             new_route = new_route[:i] + new_route[k:l + 1] + new_route[j + 1:k] + new_route[i:j + 1] + new_route[l + 1:]
@@ -108,6 +108,7 @@ class TSP(Problem):
                 total_distance += self.distance_dict[(start, end)]
             else:
                 total_distance = float('inf')  # Return a very high distance if the connection doesn't exist
+                break
         return 1 / total_distance
 
     def get_initial_state(self):
