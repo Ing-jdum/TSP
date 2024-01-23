@@ -1,3 +1,5 @@
+import configparser
+
 from neo4j import GraphDatabase
 
 from SimulatedAnnealing import SimulatedAnnealing
@@ -18,12 +20,15 @@ def get_graph_data(uri, user, password):
     return result
 
 
-uri = "neo4j://localhost:7687"
-user = "neo4j"
-password = "testanddevelopment"
-graph_data = get_graph_data(uri, user, password)
+config = configparser.ConfigParser()
+config.read('config.ini')
+db_host = config.get('Database', 'DB_HOST')
+db_user = config.get('Database', 'DB_USER')
+db_password = config.get('Database', 'DB_PASSWORD')
+graph_data = get_graph_data(db_host, db_user, db_password)
 
-tsp = TSP(graph_data, 'Hub')
+# Remember to change the name of the start node i forgot multiple times hahahaha
+tsp = TSP(graph_data, 'l1')
 simulated_annealing = SimulatedAnnealing(tsp)
 print(simulated_annealing.best_of_x(x=40, initial_temperature=2000, n=15,
                                     cooling_factor=0.1, minimum_temperature=0.99))

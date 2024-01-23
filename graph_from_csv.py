@@ -52,7 +52,6 @@ class GraphCreator:
         tx.run(query)
 
 
-# Usage
 config = configparser.ConfigParser()
 config.read('config.ini')
 db_host = config.get('Database', 'DB_HOST')
