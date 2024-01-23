@@ -18,30 +18,49 @@ class SimulatedAnnealing:
 
         if random.uniform(0, 1) < probability:
             state = future_state
-
         return state
 
     # find solution
-    def find_solution(self, initial_temperature: float, n: int, cooling_factor: float,
-                      minimum_temperature: float):
-        problem = self.problem
+    def find_solution(self, initial_temperature: float, n: int, cooling_factor: float, minimum_temperature: float):
+        is_solution_valid = False
+        while not is_solution_valid:
+            problem = self.problem
+            best_solution = problem.get_current_state()
+            best_fitness = 0
 
-        def simulated_annealing():
-            temperature = initial_temperature
-            while temperature > minimum_temperature:
-                for _ in range(n):
+            def probability_function():
+                return math.exp(float(energy_change) / float(temperature))
+
+            for _ in range(n):
+                same_solution = 0
+                same_cost_diff = 0
+                temperature = initial_temperature
+                problem.update_current_state(problem.get_initial_state())
+                while same_solution < 500 and same_cost_diff < 1500:
+                    if temperature < minimum_temperature:
+                        break
                     future_state = problem.get_random_future_state()
                     energy_change = problem.get_cost(future_state) - problem.get_cost(problem.get_current_state())
                     if energy_change > 0:
                         problem.update_current_state(future_state)
+                        same_solution = 0
+                        same_cost_diff = 0
+                    elif energy_change == 0:
+                        same_solution = 0
+                        same_cost_diff += 1
                     else:
-                        problem.update_current_state(self.__execute_with_probability(problem.get_current_state(),
-                                                                                     future_state,
-                                                                                     energy_change, temperature))
-                temperature = temperature * cooling_factor
+                        if random.uniform(0, 1) < probability_function():
+                            problem.update_current_state(future_state)
+                            same_solution = 0
+                            same_cost_diff = 0
+                        else:
+                            same_solution += 1
+                            same_cost_diff += 1
+                    if problem.get_cost(problem.get_current_state()) > best_fitness:
+                        best_solution = problem.get_current_state()
+                        best_fitness = problem.get_cost(problem.get_current_state())
+                    temperature = temperature * cooling_factor
 
-        while not problem.validate_state(problem.get_current_state()):
-            problem.update_current_state(problem.get_initial_state())
-            simulated_annealing()
-
-        return problem.get_current_state(), 1/problem.get_cost(problem.get_current_state())
+            is_solution_valid = problem.validate_state(problem.get_current_state())
+            print(best_solution, best_fitness)
+        return best_solution, 1/best_fitness

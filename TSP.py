@@ -30,7 +30,7 @@ class TSP(Problem):
 
     def generate_random_future_state(self):
         """Returns neighbor of  your solution."""
-        func = random.choice([0, 1, 2, 3])
+        func = random.choice([0, 1, 2, 3, 4])
         if func == 0:
             state = self.inverse()
 
@@ -39,11 +39,19 @@ class TSP(Problem):
 
         elif func == 2:
             state = self.swap()
+        elif func == 3:
+            state = self.shuffle()
 
         else:
             state = self.swap_routes()
-
         return state
+
+
+    def shuffle(self):
+        new_route = self.state.copy()
+        random.shuffle(new_route)
+        return new_route
+
 
     def inverse(self):
         new_route = self.state.copy()
@@ -99,8 +107,7 @@ class TSP(Problem):
             elif (end, start) in self.distance_dict:
                 total_distance += self.distance_dict[(start, end)]
             else:
-                return float('inf')  # Return a very high distance if the connection doesn't exist
-        print(total_distance)
+                total_distance = float('inf')  # Return a very high distance if the connection doesn't exist
         return 1 / total_distance
 
     def get_initial_state(self):

@@ -25,5 +25,5 @@ graph_data = get_graph_data(uri, user, password)
 
 tsp = TSP(graph_data)
 simulated_annealing = SimulatedAnnealing(tsp)
-print(simulated_annealing.find_solution(initial_temperature=500, n=20,
+print(simulated_annealing.find_solution(initial_temperature=3000, n=20,
                                         cooling_factor=0.1, minimum_temperature=0.9))

@@ -22,8 +22,6 @@ class VRPGraphCreator:
             connections = [
                 ('Hub', 'Location1', 10),
                 ('Hub', 'Location2', 15),
-                ('Hub', 'Location3', 20),
-                ('Hub', 'Location4', 25),
                 ('Location1', 'Location2', 5),
                 ('Location2', 'Location3', 6),
                 ('Location3', 'Location4', 7),
@@ -31,7 +29,6 @@ class VRPGraphCreator:
             ]
             for start, end, distance in connections:
                 session.execute_write(self._create_connection, start, end, distance)
-
 
     @staticmethod
     def _create_hub(tx):
