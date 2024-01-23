@@ -23,7 +23,7 @@ user = "neo4j"
 password = "testanddevelopment"
 graph_data = get_graph_data(uri, user, password)
 
-tsp = TSP(graph_data, 'Hub')
+tsp = TSP(graph_data, 'l4')
 simulated_annealing = SimulatedAnnealing(tsp)
 print(simulated_annealing.find_solution(initial_temperature=3000, n=20,
                                         cooling_factor=0.1, minimum_temperature=0.9))
