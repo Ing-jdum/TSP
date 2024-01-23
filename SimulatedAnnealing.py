@@ -31,8 +31,7 @@ class SimulatedAnnealing:
             while temperature > minimum_temperature:
                 for _ in range(n):
                     future_state = problem.get_random_future_state()
-                    energy_change = (problem.heuristic(problem.get_current_state()) -
-                                     problem.heuristic(future_state))
+                    energy_change = problem.get_cost(future_state) - problem.get_cost(problem.get_current_state())
                     if energy_change > 0:
                         problem.update_current_state(future_state)
                     else:
@@ -41,8 +40,8 @@ class SimulatedAnnealing:
                                                                                      energy_change, temperature))
                 temperature = temperature * cooling_factor
 
-        # while not problem.validate_state(problem.get_current_state()):
-        #     problem.update_current_state(problem.get_initial_state())
-        simulated_annealing()
+        while not problem.validate_state(problem.get_current_state()):
+            problem.update_current_state(problem.get_initial_state())
+            simulated_annealing()
 
-        return problem.get_current_state(), problem.get_cost(problem.get_current_state())
+        return problem.get_current_state(), 1/problem.get_cost(problem.get_current_state())
