@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 # Define the size of the matrix and the percentage of connections
-n = 5  # Size of the matrix
+n = 15  # Size of the matrix
 connection_density = 0.7  # Percentage of connected nodes, e.g., 0.7 means 70% connected
 
 # Generate a random n x n distance matrix with integers from 1 to 10

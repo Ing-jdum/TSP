@@ -62,4 +62,13 @@ class SimulatedAnnealing:
                     temperature = temperature * cooling_factor
 
             is_solution_valid = problem.validate_state(problem.get_current_state())
-        return best_solution, 1/best_fitness
+        return best_solution, 1 / best_fitness
+
+    def best_of_x(self, x: float, initial_temperature: float, n: int, cooling_factor: float,
+                  minimum_temperature: float):
+        best_solution, best_distance = [], float('inf')
+        for _ in range(x):
+            solution, distance = self.find_solution(initial_temperature, n, cooling_factor, minimum_temperature)
+            if distance < best_distance:
+                best_solution, best_distance = solution, distance
+        return best_solution, best_distance
