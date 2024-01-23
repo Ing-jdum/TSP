@@ -7,7 +7,7 @@ class TSP(Problem):
     """
        A class to represent the Traveling Salesman Problem (TSP).
        Attributes:
-           start_node (any): The starting node for the TSP.
+           start_node (str): The starting node name for the TSP.
            graph_data (list): A list of dictionaries where each dictionary represents a connection
                               between two nodes with a specified distance.
            distance_dict (dict): A dictionary mapping pairs of nodes to the distance between them.
