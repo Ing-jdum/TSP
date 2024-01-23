@@ -1,3 +1,4 @@
+import configparser
 from neo4j import GraphDatabase
 
 
@@ -58,10 +59,12 @@ class TSPGraphCreator:
         tx.run(query)
 
 
-uri = "neo4j://localhost:7687"  # Replace with your URI
-user = "neo4j"  # Replace with your username
-password = "testanddevelopment"  # Replace with your password
+config = configparser.ConfigParser()
+config.read('config.ini')
+db_host = config.get('Database', 'DB_HOST')
+db_user = config.get('Database', 'DB_USER')
+db_password = config.get('Database', 'DB_PASSWORD')
 
-vrp_graph = TSPGraphCreator(uri, user, password)
+vrp_graph = TSPGraphCreator(db_host, db_user, db_password)
 vrp_graph.create_vrp_graph()
 vrp_graph.close()
