@@ -28,6 +28,10 @@ class TSP(Problem):
 
     def get_random_future_state(self):
         state = self.generate_random_future_state()
+        is_valid_state = self.validate_state(state)
+        while not is_valid_state:
+            state = self.generate_random_future_state()
+            is_valid_state = self.validate_state(state)
         return state
 
     def generate_random_future_state(self):
@@ -41,6 +45,7 @@ class TSP(Problem):
 
         elif func == 2:
             state = self.swap()
+
         elif func == 3:
             state = self.shuffle()
 
