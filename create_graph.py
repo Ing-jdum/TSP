@@ -1,7 +1,7 @@
 from neo4j import GraphDatabase
 
 
-class VRPGraphCreator:
+class TSPGraphCreator:
     def __init__(self, uri, user, password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
 
@@ -10,6 +10,7 @@ class VRPGraphCreator:
 
     def create_vrp_graph(self):
         with self.driver.session() as session:
+            self._drop_existing(session)
             # Create the Hub
             session.execute_write(self._create_hub)
 
@@ -49,12 +50,18 @@ class VRPGraphCreator:
         )
         tx.run(query, start=start, end=end, distance=distance)
 
+    @staticmethod
+    def _drop_existing(tx):
+        query = (
+            "MATCH (n) DETACH DELETE n"
+        )
+        tx.run(query)
 
-# Usage
+
 uri = "neo4j://localhost:7687"  # Replace with your URI
 user = "neo4j"  # Replace with your username
 password = "testanddevelopment"  # Replace with your password
 
-vrp_graph = VRPGraphCreator(uri, user, password)
+vrp_graph = TSPGraphCreator(uri, user, password)
 vrp_graph.create_vrp_graph()
 vrp_graph.close()

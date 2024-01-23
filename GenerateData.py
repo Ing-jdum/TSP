@@ -18,7 +18,7 @@ for i in range(n):
         distance_matrix[j][i] = distance_matrix[i][j]
 np.fill_diagonal(distance_matrix, -1)
 
-# Convert the numpy array to a DataFrame, just for visual inspection here
+# Convert the numpy array to a DataFrame
 distance_df = pd.DataFrame(distance_matrix, columns=[f'l{i+1}' for i in range(n)], index=[f'l{i+1}' for i in range(n)])
 
 # Save the DataFrame to a CSV file

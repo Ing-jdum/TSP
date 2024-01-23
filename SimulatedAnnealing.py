@@ -4,21 +4,39 @@ from interfaces import Problem
 
 
 def probability(energy_change, temperature):
+    """
+    :param energy_change: difference between current state cost and probable future state
+    :param temperature: current temperature
+    :return: a value between 1 and 0 from e^(-energy_change/temperature)
+    """
     return math.exp(-energy_change / temperature)
 
 
 class SimulatedAnnealing:
-
+    """
+       A class to represent the SimulatedAnnealing algorithm.
+       Attributes:
+           general_functions (Problem): a class with  the implementation of the methods in the interface Problem
+    """
     def __init__(self, general_functions: Problem):
         self.problem = general_functions
 
     # helper functions
 
-    def find_solution(self, initial_temperature, n, cooling_factor, minimum_temperature):
+    def find_solution(self, initial_temperature: float, n: int, cooling_factor: float, minimum_temperature: float):
+        """
+        A method to run a modification of simulated annealing
+        :param initial_temperature: temperature to start
+        :param n: number of iterations in the for loop
+        :param cooling_factor:
+        :param minimum_temperature: temperature before breaking the loop
+        :return: best tour found
+        """
+
         problem = self.problem
         problem.update_current_state(problem.get_initial_state())
         best_solution = problem.get_current_state()
-        best_fitness = problem.get_cost(best_solution)
+        best_score = problem.get_cost(best_solution)
 
         stagnation_counter = 0
         temperature = initial_temperature
@@ -41,22 +59,25 @@ class SimulatedAnnealing:
                 else:
                     stagnation_counter += 1  # Increment stagnation counter
 
-                if current_cost > best_fitness:
+                if current_cost > best_score:
                     best_solution = problem.get_current_state()
-                    best_fitness = current_cost
+                    best_score = current_cost
 
             temperature *= cooling_factor  # Cool down
 
-        # The validate_state check is removed assuming all generated states are valid.
-        # If this is not the case, add it back.
         try:
-            distance = 1/best_fitness
+            distance = 1/best_score
         except ZeroDivisionError:
             distance = float('inf')
+
         return best_solution, distance
 
     def best_of_x(self, x: int, initial_temperature: float, n: int, cooling_factor: float,
                   minimum_temperature: float):
+        """
+        Run find_solution x times see paramaters on find_solution method
+        """
+
         best_solution, best_distance = [], float('inf')
         for _ in range(x):
             solution, distance = self.find_solution(initial_temperature, n, cooling_factor, minimum_temperature)
