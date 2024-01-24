@@ -1,6 +1,11 @@
+import itertools
 import math
 import random
 from interfaces import Problem
+from collections import defaultdict
+import statistics
+import time
+import matplotlib.pyplot as plt
 
 
 def probability(energy_change, temperature):
@@ -18,12 +23,13 @@ class SimulatedAnnealing:
        Attributes:
            general_functions (Problem): a class with  the implementation of the methods in the interface Problem
     """
+
     def __init__(self, general_functions: Problem):
         self.problem = general_functions
 
     # helper functions
 
-    def find_solution(self, initial_temperature: float, n: int, cooling_factor: float, minimum_temperature: float):
+    def find_solution(self, minimum_temperature: float, initial_temperature: float, cooling_factor: float,  n: int):
         """
         A method to run a modification of simulated annealing
         :param initial_temperature: temperature to start
@@ -66,21 +72,89 @@ class SimulatedAnnealing:
             temperature *= cooling_factor  # Cool down
 
         try:
-            distance = 1/best_score
+            distance = 1 / best_score
         except ZeroDivisionError:
             distance = float('inf')
 
         return best_solution, distance
 
-    def best_of_x(self, x: int, initial_temperature: float, n: int, cooling_factor: float,
-                  minimum_temperature: float):
+    def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
+                  cooling_factor: float, n: int):
         """
         Run find_solution x times see paramaters on find_solution method
         """
 
         best_solution, best_distance = [], float('inf')
         for _ in range(x):
-            solution, distance = self.find_solution(initial_temperature, n, cooling_factor, minimum_temperature)
+            solution, distance = self.find_solution(minimum_temperature, initial_temperature, cooling_factor, n)
             if distance < best_distance:
                 best_solution, best_distance = solution, distance
         return best_solution, best_distance
+
+    def get_best_parameters(self, parameters, minimum_temperature=10, executions_per_combination=10):
+
+        # Dictionary to hold aggregated results for each parameter combination
+        aggregated_results = defaultdict(list)
+
+        for initial_temperature, cooling_factor, n in itertools.product(
+                parameters['initial_temperature'], parameters['cooling_factor'], parameters['n']):
+
+            # Execute each parameter combination multiple times
+            for _ in range(executions_per_combination):
+                start_time = time.time()
+                solution, distance = self.find_solution(
+                    initial_temperature=initial_temperature,
+                    n=n,
+                    cooling_factor=cooling_factor,
+                    minimum_temperature=minimum_temperature)
+                end_time = time.time()
+                time_elapsed = end_time - start_time
+
+                # Aggregate results
+                aggregated_results[(initial_temperature, cooling_factor, n)].append((distance, time_elapsed))
+
+        # Process the results to find the mode of distance and minimum time for each parameter set
+        best_results = []
+        for params, results in aggregated_results.items():
+            distances = [result[0] for result in results]
+            mode_distance = statistics.mode(distances)
+            min_time = min([time for dist, time in results if dist == mode_distance])
+
+            best_results.append((params, mode_distance, min_time))
+
+        # Sort the results by distance first and then by time
+        best_results.sort(key=lambda x: (x[1], x[2]))
+
+        return best_results
+
+    def plot_n_results(self, num_runs, minimum_temperature, initial_temperature, cooling_factor, n):
+        """
+        Runs the simulated annealing solution method multiple times and plots a histogram of the distances found.
+
+        Parameters:
+            simulated_annealing: The instance of the SimulatedAnnealing class.
+            num_runs: Number of times to run the simulation.
+            initial_temperature: Initial temperature for simulated annealing.
+            n: Number of iterations per single temperature in simulated annealing.
+            cooling_factor: Factor by which the temperature is decreased in each iteration.
+            minimum_temperature: Minimum temperature to stop the annealing process.
+        """
+
+        distances = []
+
+        for _ in range(num_runs):
+            solution, distance = self.find_solution(
+                initial_temperature=initial_temperature,
+                n=n,
+                cooling_factor=cooling_factor,
+                minimum_temperature=minimum_temperature)
+            if distance == float('inf'):
+                distance = -1
+            distances.append(distance)
+
+        # Plotting the histogram of distances
+        plt.hist(distances, bins='auto')
+        plt.title('Histograma de distancias')
+        plt.xlabel('Distancia')
+        plt.ylabel('Frecuencia')
+        plt.show()

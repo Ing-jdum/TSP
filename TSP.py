@@ -129,11 +129,8 @@ class TSP(Problem):
         """
         new_route = self.state.copy()
         n = len(new_route)
-        i, j = sorted(random.sample(range(1, n), 2))
-        k, l = sorted(random.sample(range(1, n), 2))
-
-        if j < k:
-            new_route = new_route[:i] + new_route[k:l + 1] + new_route[j + 1:k] + new_route[i:j + 1] + new_route[l + 1:]
+        i, j, k, l = sorted(random.sample(range(1, n), 4))
+        new_route = new_route[:i] + new_route[k:l + 1] + new_route[j + 1:k] + new_route[i:j + 1] + new_route[l + 1:]
         return new_route
 
     def validate_state(self, sequence):

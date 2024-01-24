@@ -1,7 +1,4 @@
-import configparser
-
 from neo4j import GraphDatabase
-import pandas as pd
 
 
 class GraphCreator:
@@ -51,15 +48,3 @@ class GraphCreator:
         )
         tx.run(query)
 
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-db_host = config.get('Database', 'DB_HOST')
-db_user = config.get('Database', 'DB_USER')
-db_password = config.get('Database', 'DB_PASSWORD')
-
-df = pd.read_csv('random_distance_matrix.csv')
-df.fillna(-1, inplace=True)
-graph_creator = GraphCreator(db_host, db_user, db_password)
-graph_creator.create_graph(df)
-graph_creator.close()
