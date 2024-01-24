@@ -47,4 +47,3 @@ class GraphCreator:
             "MATCH (n) DETACH DELETE n"
         )
         tx.run(query)
-

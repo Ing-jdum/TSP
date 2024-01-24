@@ -41,7 +41,7 @@ class TSP(Problem):
         """
         Take the initial list of dicts and create a dictionary containing as key pair of nodes.
         Returns:
-            dict: A dictionary with pair of ndoes as key.
+            dict: A dictionary with pair of nodes as key.
         """
         data = self.graph_data
         distance_dict = {(d['start'], d['end']): d['distance'] for d in data}

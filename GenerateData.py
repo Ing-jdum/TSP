@@ -18,7 +18,8 @@ def generate_data(n=15, connection_density=0.7):
     np.fill_diagonal(distance_matrix, -1)
 
     # Convert the numpy array to a DataFrame
-    distance_df = pd.DataFrame(distance_matrix, columns=[f'l{i+1}' for i in range(n)], index=[f'l{i+1}' for i in range(n)])
+    distance_df = pd.DataFrame(distance_matrix, columns=[f'l{i+1}' for i in range(n)],
+                               index=[f'l{i+1}' for i in range(n)])
 
     # Save the DataFrame to a CSV file
     csv_file_path = 'distance_matrix.csv'

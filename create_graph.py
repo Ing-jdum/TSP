@@ -56,6 +56,3 @@ class TSPGraphCreator:
             "MATCH (n) DETACH DELETE n"
         )
         tx.run(query)
-
-
-

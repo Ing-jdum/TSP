@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 class Problem(ABC):
     """
     This abstract base class defines the interface for a problem that will be used in the algorithms.
-    Subclasses should implement the methods to define the specific problem domain, such as the Traveling Salesman Problem.
+    Subclasses should implement the methods to define the specific problem domain,
+    such as the Traveling Salesman Problem.
     """
 
     @abstractmethod
