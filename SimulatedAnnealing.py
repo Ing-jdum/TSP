@@ -20,8 +20,6 @@ def probability(energy_change, temperature):
 class SimulatedAnnealing:
     """
        A class to represent the SimulatedAnnealing algorithm.
-       Attributes:
-           general_functions (Problem): a class with  the implementation of the methods in the interface Problem
     """
 
     def __init__(self, general_functions: Problem):
@@ -81,7 +79,7 @@ class SimulatedAnnealing:
     def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
                   cooling_factor: float, n: int):
         """
-        Run find_solution x times see paramaters on find_solution method
+        Run find_solution x times see parameters on find_solution method
         """
 
         best_solution, best_distance = [], float('inf')
@@ -92,7 +90,12 @@ class SimulatedAnnealing:
         return best_solution, best_distance
 
     def get_best_parameters(self, parameters, minimum_temperature=10, executions_per_combination=10):
-
+        """
+        :param parameters: dictionary containing the parameters and a list of values to test
+        :param minimum_temperature: fixed parameter
+        :param executions_per_combination: int
+        :return: dictionary with the results sorted by distance and then time
+        """
         # Dictionary to hold aggregated results for each parameter combination
         aggregated_results = defaultdict(list)
 
@@ -118,7 +121,7 @@ class SimulatedAnnealing:
         for params, results in aggregated_results.items():
             distances = [result[0] for result in results]
             mode_distance = statistics.mode(distances)
-            min_time = min([time for dist, time in results if dist == mode_distance])
+            min_time = min([elapsed_time for dist, elapsed_time in results if dist == mode_distance])
 
             best_results.append((params, mode_distance, min_time))
 
@@ -132,7 +135,6 @@ class SimulatedAnnealing:
         Runs the simulated annealing solution method multiple times and plots a histogram of the distances found.
 
         Parameters:
-            simulated_annealing: The instance of the SimulatedAnnealing class.
             num_runs: Number of times to run the simulation.
             initial_temperature: Initial temperature for simulated annealing.
             n: Number of iterations per single temperature in simulated annealing.
