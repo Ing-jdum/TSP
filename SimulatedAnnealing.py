@@ -78,7 +78,7 @@ class SimulatedAnnealing:
             problem.update_current_state(problem.get_initial_state())
             simulated_annealing()
 
-        return problem.get_current_state(), problem.get_cost(problem.get_current_state())
+        return problem.get_current_state(), 1/problem.get_cost(problem.get_current_state())
 
     def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
                   cooling_factor: float, n: int):
