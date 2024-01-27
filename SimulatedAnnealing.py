@@ -203,10 +203,15 @@ class SimulatedAnnealing:
 # except:
 #     print("Subgrafo ya existe")
 #
-
+# pagerank = driver.bring_data(queries['page_rank'])
+# degree = driver.bring_data(queries['degree'])
+# closeness = driver.bring_data(queries['closeness'])
+# clustering = driver.bring_data(queries['clustering'])
+# data = pd.merge(pagerank, degree, on='name')
+# data = pd.merge(data, closeness, on='name')
+# data = pd.merge(data, clustering, on='name')
 #
-# print(data)
-# tsp = TSP(graph_data, 'l1', data)
+# tsp = TSP(graph_data, 'Hub', data)
 #
 # simulated_annealing = SimulatedAnnealing(tsp)
 # print(simulated_annealing.best_of_x(x=10, initial_temperature=500, n=15,
