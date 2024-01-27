@@ -1,11 +1,16 @@
+import configparser
 import itertools
 import math
 import random
+
+from TSP import TSP
 from interfaces import Problem
 from collections import defaultdict
 import statistics
 import time
 import matplotlib.pyplot as plt
+
+from test_solution import get_graph_data
 
 
 def probability(energy_change, temperature):
@@ -27,7 +32,7 @@ class SimulatedAnnealing:
 
     # helper functions
 
-    def find_solution(self, minimum_temperature: float, initial_temperature: float, cooling_factor: float,  n: int):
+    def find_solution(self, minimum_temperature: float, initial_temperature: float, cooling_factor: float, n: int):
         """
         A method to run a modification of simulated annealing
         :param initial_temperature: temperature to start
@@ -54,7 +59,6 @@ class SimulatedAnnealing:
                     current_cost = problem.get_cost(problem.get_current_state())
                     future_cost = problem.get_cost(future_state)
                     energy_change = future_cost - current_cost
-
                     if energy_change > 0 or (
                             energy_change <= 0 and random.uniform(0, 1) < probability(energy_change, temperature)):
                         problem.update_current_state(future_state)
@@ -68,12 +72,13 @@ class SimulatedAnnealing:
                         best_score = current_cost
 
                 temperature *= cooling_factor  # Cool down
+            problem.update_current_state(best_solution)
 
         while not (problem.is_solution(problem.get_current_state())):
             problem.update_current_state(problem.get_initial_state())
             simulated_annealing()
 
-        return problem.get_current_state()
+        return problem.get_current_state(), problem.get_cost(problem.get_current_state())
 
     def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
                   cooling_factor: float, n: int):
@@ -159,3 +164,18 @@ class SimulatedAnnealing:
         plt.xlabel('Distancia')
         plt.ylabel('Frecuencia')
         plt.show()
+
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+db_host = config.get('Database', 'DB_HOST')
+db_user = config.get('Database', 'DB_USER')
+db_password = config.get('Database', 'DB_PASSWORD')
+
+graph_data = get_graph_data(db_host,
+                            db_user, db_password)
+
+tsp = TSP(graph_data, 'Hub')
+simulated_annealing = SimulatedAnnealing(tsp)
+print(simulated_annealing.best_of_x(x=40, initial_temperature=2000, n=15,
+                                    cooling_factor=0.1, minimum_temperature=0.99))

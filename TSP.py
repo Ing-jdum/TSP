@@ -27,7 +27,7 @@ class TSP(Problem):
         Extracts nodes from the graph data, ensuring the start node is first in the list.
 
         Returns:
-            list: A list of nodes starting with the start node.
+            list: A list that is valid of nodes starting with the start node.
         """
 
         locations = set()
@@ -35,7 +35,11 @@ class TSP(Problem):
             locations.add(start)
             locations.add(end)
         locations = list(locations - {self.start_node})
-        return [self.start_node] + locations
+        init_locations = [self.start_node] + locations
+        while not self.validate_state(init_locations):
+            self.state = init_locations
+            init_locations = self.shuffle()
+        return init_locations
 
     def get_distance_dict(self):
         """
@@ -140,14 +144,16 @@ class TSP(Problem):
         """
 
         for i in range(len(sequence)):
-            if (sequence[i], sequence[(i + 1) % len(sequence)]) not in self.distance_dict:
+            if ((sequence[i], sequence[(i + 1) % len(sequence)]) not in self.distance_dict
+                    and (sequence[(i + 1) % len(sequence)], sequence[i]) not in self.distance_dict):
                 return False  # Check if consecutive locations are connected
 
         return True
-    
+
     def is_solution(self, sequence):
         if not set(self.initial_state).issubset(set(sequence)):
             return False  # Check if all locations are visited at least once
+        return True
 
     def heuristic(self, state):
         pass
