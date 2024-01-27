@@ -2,7 +2,9 @@ import configparser
 import itertools
 import math
 import random
+import pandas as pd
 
+import constants
 from TSP import TSP
 from interfaces import Problem
 from collections import defaultdict
@@ -11,6 +13,7 @@ import time
 import matplotlib.pyplot as plt
 
 from test_solution import get_graph_data
+from utils import SessionManager
 
 
 def probability(energy_change, temperature):
@@ -45,7 +48,8 @@ class SimulatedAnnealing:
         problem = self.problem
 
         def simulated_annealing():
-            problem.update_current_state(problem.get_initial_state())
+            problem.update_current_state(problem.start())
+            print("id1", problem.get_current_state())
             best_solution = problem.get_current_state()
             best_score = problem.get_cost(best_solution)
             stagnation_counter = 0
@@ -54,7 +58,6 @@ class SimulatedAnnealing:
                 for _ in range(n):
                     if stagnation_counter >= 1500:
                         break
-
                     future_state = problem.get_random_future_state()
                     current_cost = problem.get_cost(problem.get_current_state())
                     future_cost = problem.get_cost(future_state)
@@ -70,15 +73,13 @@ class SimulatedAnnealing:
                     if current_cost > best_score:
                         best_solution = problem.get_current_state()
                         best_score = current_cost
-
                 temperature *= cooling_factor  # Cool down
             problem.update_current_state(best_solution)
 
         while not (problem.is_solution(problem.get_current_state())):
-            problem.update_current_state(problem.get_initial_state())
             simulated_annealing()
 
-        return problem.get_current_state(), 1/problem.get_cost(problem.get_current_state())
+        return problem.get_current_state(), 1 / problem.get_cost(problem.get_current_state())
 
     def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
                   cooling_factor: float, n: int):
@@ -167,16 +168,28 @@ class SimulatedAnnealing:
 
 
 # Testing purposes
-# config = configparser.ConfigParser()
-# config.read('config.ini')
-# db_host = config.get('Database', 'DB_HOST')
-# db_user = config.get('Database', 'DB_USER')
-# db_password = config.get('Database', 'DB_PASSWORD')
-#
-# graph_data = get_graph_data(db_host,
-#                             db_user, db_password)
-#
-# tsp = TSP(graph_data, 'Hub')
-# simulated_annealing = SimulatedAnnealing(tsp)
-# print(simulated_annealing.best_of_x(x=40, initial_temperature=2000, n=15,
-#                                     cooling_factor=0.1, minimum_temperature=0.99))
+config = configparser.ConfigParser()
+config.read('config.ini')
+db_host = config.get('Database', 'DB_HOST')
+db_user = config.get('Database', 'DB_USER')
+db_password = config.get('Database', 'DB_PASSWORD')
+
+graph_data = get_graph_data(db_host,
+                            db_user, db_password)
+
+driver = SessionManager()
+queries = constants.queries_dict
+# try:
+#     driver.execute(queries['create_virtual'])
+# except:
+#     print("Subgrafo ya existe")
+
+pagerank = driver.bring_data(queries['page_rank'])
+degree = driver.bring_data(queries['degree'])
+data = pd.merge(pagerank, degree, on='name')
+
+tsp = TSP(graph_data, 'Hub', data)
+
+simulated_annealing = SimulatedAnnealing(tsp)
+print(simulated_annealing.best_of_x(x=10, initial_temperature=500, n=15,
+                                    cooling_factor=0.5, minimum_temperature=5))

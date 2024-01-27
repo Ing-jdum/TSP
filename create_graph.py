@@ -35,7 +35,7 @@ class TSPGraphCreator:
 
     @staticmethod
     def _create_hub(tx):
-        tx.run("MERGE (:Hub {name: 'Hub'})")
+        tx.run("MERGE (:Location {name: 'Hub'})")
 
     @staticmethod
     def _create_location(tx, location_name):

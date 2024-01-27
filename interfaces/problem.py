@@ -46,6 +46,16 @@ class Problem(ABC):
         pass
 
     @abstractmethod
+    def start(self):
+        """
+        Create a initial state valid
+
+        Returns:
+            A valid initial state.
+        """
+        pass
+
+    @abstractmethod
     def get_cost(self, state):
         """
         Calculate and return the cost associated with a given state.
