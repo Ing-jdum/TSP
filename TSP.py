@@ -138,8 +138,6 @@ class TSP(Problem):
         :param sequence: a tour
         :return: boolean
         """
-        if not set(self.initial_state).issubset(set(sequence)):
-            return False  # Check if all locations are visited at least once
 
         for i in range(len(sequence) - 1):
             if (sequence[i], sequence[i + 1]) not in self.distance_dict and (
@@ -147,6 +145,10 @@ class TSP(Problem):
                 return False  # Check if consecutive locations are connected
 
         return True
+    
+    def is_solution(self, sequence):
+        if not set(self.initial_state).issubset(set(sequence)):
+            return False  # Check if all locations are visited at least once
 
     def heuristic(self, state):
         pass

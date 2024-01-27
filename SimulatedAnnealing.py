@@ -38,43 +38,42 @@ class SimulatedAnnealing:
         """
 
         problem = self.problem
-        problem.update_current_state(problem.get_initial_state())
-        best_solution = problem.get_current_state()
-        best_score = problem.get_cost(best_solution)
 
-        stagnation_counter = 0
-        temperature = initial_temperature
+        def simulated_annealing():
+            problem.update_current_state(problem.get_initial_state())
+            best_solution = problem.get_current_state()
+            best_score = problem.get_cost(best_solution)
+            stagnation_counter = 0
+            temperature = initial_temperature
+            while temperature > minimum_temperature:
+                for _ in range(n):
+                    if stagnation_counter >= 1500:
+                        break
 
-        while temperature > minimum_temperature:
-            for _ in range(n):
-                if stagnation_counter >= 1500:
-                    break
+                    future_state = problem.get_random_future_state()
+                    current_cost = problem.get_cost(problem.get_current_state())
+                    future_cost = problem.get_cost(future_state)
+                    energy_change = future_cost - current_cost
 
-                future_state = problem.get_random_future_state()
-                current_cost = problem.get_cost(problem.get_current_state())
-                future_cost = problem.get_cost(future_state)
-                energy_change = future_cost - current_cost
+                    if energy_change > 0 or (
+                            energy_change <= 0 and random.uniform(0, 1) < probability(energy_change, temperature)):
+                        problem.update_current_state(future_state)
+                        current_cost = future_cost  # Update current cost since state has changed
+                        stagnation_counter = 0  # Reset stagnation counter
+                    else:
+                        stagnation_counter += 1  # Increment stagnation counter
 
-                if energy_change > 0 or (
-                        energy_change <= 0 and random.uniform(0, 1) < probability(energy_change, temperature)):
-                    problem.update_current_state(future_state)
-                    current_cost = future_cost  # Update current cost since state has changed
-                    stagnation_counter = 0  # Reset stagnation counter
-                else:
-                    stagnation_counter += 1  # Increment stagnation counter
+                    if current_cost > best_score:
+                        best_solution = problem.get_current_state()
+                        best_score = current_cost
 
-                if current_cost > best_score:
-                    best_solution = problem.get_current_state()
-                    best_score = current_cost
+                temperature *= cooling_factor  # Cool down
 
-            temperature *= cooling_factor  # Cool down
+        while not (problem.is_solution()):
+            problem.update_current_state(problem.get_initial_state())
+            simulated_annealing()
 
-        try:
-            distance = 1 / best_score
-        except ZeroDivisionError:
-            distance = float('inf')
-
-        return best_solution, distance
+        return problem.get_current_state()
 
     def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
                   cooling_factor: float, n: int):

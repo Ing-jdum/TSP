@@ -33,6 +33,19 @@ class Problem(ABC):
         pass
 
     @abstractmethod
+    def is_solution(self, state):
+        """
+        Check if a given state is a valid solution
+
+        Parameters:
+            state: The state to validate.
+
+        Returns:
+            A boolean indicating whether the state is solution (True) or invalid (False).
+        """
+        pass
+
+    @abstractmethod
     def get_cost(self, state):
         """
         Calculate and return the cost associated with a given state.
