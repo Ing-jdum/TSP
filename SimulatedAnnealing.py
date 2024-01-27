@@ -69,7 +69,7 @@ class SimulatedAnnealing:
 
                 temperature *= cooling_factor  # Cool down
 
-        while not (problem.is_solution()):
+        while not (problem.is_solution(problem.get_current_state())):
             problem.update_current_state(problem.get_initial_state())
             simulated_annealing()
 

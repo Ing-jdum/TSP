@@ -139,9 +139,8 @@ class TSP(Problem):
         :return: boolean
         """
 
-        for i in range(len(sequence) - 1):
-            if (sequence[i], sequence[i + 1]) not in self.distance_dict and (
-                    sequence[i + 1], sequence[i]) not in self.distance_dict:
+        for i in range(len(sequence)):
+            if (sequence[i], sequence[(i + 1) % len(sequence)]) not in self.distance_dict:
                 return False  # Check if consecutive locations are connected
 
         return True
