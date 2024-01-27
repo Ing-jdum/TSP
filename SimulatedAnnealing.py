@@ -166,16 +166,17 @@ class SimulatedAnnealing:
         plt.show()
 
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-db_host = config.get('Database', 'DB_HOST')
-db_user = config.get('Database', 'DB_USER')
-db_password = config.get('Database', 'DB_PASSWORD')
-
-graph_data = get_graph_data(db_host,
-                            db_user, db_password)
-
-tsp = TSP(graph_data, 'Hub')
-simulated_annealing = SimulatedAnnealing(tsp)
-print(simulated_annealing.best_of_x(x=40, initial_temperature=2000, n=15,
-                                    cooling_factor=0.1, minimum_temperature=0.99))
+# Testing purposes
+# config = configparser.ConfigParser()
+# config.read('config.ini')
+# db_host = config.get('Database', 'DB_HOST')
+# db_user = config.get('Database', 'DB_USER')
+# db_password = config.get('Database', 'DB_PASSWORD')
+#
+# graph_data = get_graph_data(db_host,
+#                             db_user, db_password)
+#
+# tsp = TSP(graph_data, 'Hub')
+# simulated_annealing = SimulatedAnnealing(tsp)
+# print(simulated_annealing.best_of_x(x=40, initial_temperature=2000, n=15,
+#                                     cooling_factor=0.1, minimum_temperature=0.99))
