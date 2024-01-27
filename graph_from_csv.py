@@ -23,6 +23,9 @@ class GraphCreator:
                     if i != j and value != -1:
                         session.execute_write(self._create_relationship, row[0], df.columns[j + 1], value)
 
+            self._drop_virtual(session)
+            self._create_virtual(session)
+
     @staticmethod
     def _create_node(tx, location):
         query = (
@@ -47,3 +50,15 @@ class GraphCreator:
             "MATCH (n) DETACH DELETE n"
         )
         tx.run(query)
+
+    @staticmethod
+    def _create_virtual(tx):
+        tx.run('''
+                    CALL gds.graph.project('virtual',
+                      'Location',
+                      {CONNECTS_TO: {orientation:'UNDIRECTED'}});
+                    ''')
+
+    @staticmethod
+    def _drop_virtual(tx):
+        tx.run('''CALL gds.graph.drop('virtual');''')

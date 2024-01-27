@@ -33,9 +33,24 @@ class TSPGraphCreator:
             for start, end, distance in connections:
                 session.execute_write(self._create_connection, start, end, distance)
 
+            self._drop_virtual(session)
+            self._create_virtual(session)
+
     @staticmethod
     def _create_hub(tx):
         tx.run("MERGE (:Location {name: 'Hub'})")
+
+    @staticmethod
+    def _create_virtual(tx):
+        tx.run('''
+                CALL gds.graph.project('virtual',
+                  'Location',
+                  {CONNECTS_TO: {orientation:'UNDIRECTED'}});
+                ''')
+
+    @staticmethod
+    def _drop_virtual(tx):
+        tx.run('''CALL gds.graph.drop('virtual');''')
 
     @staticmethod
     def _create_location(tx, location_name):

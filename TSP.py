@@ -4,18 +4,13 @@ from interfaces import Problem
 
 
 class TSP(Problem):
-    """
-       A class to represent the Traveling Salesman Problem (TSP).
-       Attributes:
-           start_node (str): The starting node name for the TSP.
-           graph_data (list): A list of dictionaries where each dictionary represents a connection
-                              between two nodes with a specified distance.
-           distance_dict (dict): A dictionary mapping pairs of nodes to the distance between them.
-           initial_state (list): The initial state of the TSP, a list of nodes representing the tour.
-           state (list): The current state or tour of the TSP.
-    """
 
     def __init__(self, graph_data, start_node, centrality_df):
+        """
+        :param graph_data: A dictionary containing the graph
+        :param start_node: A node to start the route
+        :param centrality_df: a dataframe containing the nodes and some centrality measures
+        """
         self.start_node = start_node
         self.graph_data = graph_data
         self.distance_dict = self.get_distance_dict()
@@ -118,6 +113,9 @@ class TSP(Problem):
     def generate_random_future_state(self, available_moves):
         """Perform a transformation to the current state
         to create a new one"""
+        # This can be improved so that the keys are not harcoded. Also, an exploration to find if some of them alone
+        # or a combination converge to a faster result would be nice.
+
         func = random.choice([0, 1, 2, 3, 4])
         if func == 0:
             state = self.transition_to_highest_centrality(available_moves, 'pagerank')
@@ -131,11 +129,12 @@ class TSP(Problem):
 
     def find_highest_centrality_node(self, available_nodes, centrality_key):
         """
-        Find the node with the highest centrality from a list of available nodes.
+        Find the node with the highest centrality with an adjustment based on how many times it appears on the tour
+        from a list of available nodes.
 
         :param available_nodes: A list of node names to consider.
         :param centrality_key: The centrality score to use (e.g., 'pagerank', 'degree').
-        :return: The name of the node with the highest centrality score.
+        :return: The name of the node with the highest centrality score adjusted.
         """
 
         element_counts = {item: available_nodes.count(item) for item in self.state}
@@ -151,9 +150,7 @@ class TSP(Problem):
             return None
 
         # Adjust the centrality score based on visit_count
-        # (e.g., subtracting visit_count * weight from centrality score)
-        # Here, 'weight' should be chosen based on how much you want the visit count to influence the decision
-        weight = 0.9  # Example weight
+        weight = 0.9
         filtered_df['adjusted_centrality'] = filtered_df[centrality_key] - (filtered_df['visit_count'] * weight)
 
         # Find the row with the maximum adjusted centrality score
@@ -168,6 +165,8 @@ class TSP(Problem):
         :param node: The newly visited node to add to the memory.
         :param memory_size: The maximum size of the memory.
         """
+        # the memory parameter is very important, depending on the size of the problem
+        # one should consider modifying memory size
         self.memory.add(node)
         # Ensure the memory does not exceed the specified size by removing the oldest entry
         if len(self.memory) > memory_size:
@@ -182,6 +181,7 @@ class TSP(Problem):
         :param available_moves: A list of available nodes to move to.
         :return new_state: a tour with a new node in it
         """
+
         current_state = self.state.copy()
         if not available_moves or len(current_state) == 0:
             return current_state
@@ -217,6 +217,8 @@ class TSP(Problem):
         return True
 
     def is_solution(self, sequence):
+        # even tho this method does not verify if the last node is connected with the first, in the cost function we
+        # put a very high cost when nodes are not connected, this as well, can also be improved.
         if not set(self.nodes).issubset(set(sequence)):
             return False  # Check if all locations are visited at least once
         return True
@@ -230,21 +232,22 @@ class TSP(Problem):
         and penalties for missing required nodes.
 
         :param state: A tour
-        :return: the cost (lower is better)
+        :return: the fitness (high is better)
         """
+
         total_distance = 0
         visited_nodes = set()
 
         # Calculate total distance and track visited nodes
-        for i in range(len(state)):  # Adjusted to not loop back to the start automatically
+        for i in range(len(state)):
             start = state[i]
-            end = state[(i + 1) % len(state)]  # Adjusted to ensure proper indexing
+            end = state[(i + 1) % len(state)]
             visited_nodes.add(start)  # Track visited nodes
 
             # Check if the connection exists and add its distance
             if (start, end) in self.distance_dict:
                 total_distance += self.distance_dict[(start, end)]
-            elif (end, start) in self.distance_dict:  # Fixed to properly check reverse direction
+            elif (end, start) in self.distance_dict:
                 total_distance += self.distance_dict[(end, start)]
             else:
                 # If a connection doesn't exist, assign a large penalty
@@ -256,7 +259,7 @@ class TSP(Problem):
 
         # Calculate penalties for missing nodes
         missing_nodes = set(self.nodes) - visited_nodes
-        penalty_per_missing_node = 10000  # Adjust based on your distance scale
+        penalty_per_missing_node = 10000
         total_penalty = penalty_per_missing_node * len(missing_nodes)
 
         # Combine total distance and penalties
