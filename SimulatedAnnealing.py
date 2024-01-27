@@ -35,9 +35,11 @@ class SimulatedAnnealing:
 
     # helper functions
 
-    def find_solution(self, minimum_temperature: float, initial_temperature: float, cooling_factor: float, n: int):
+    def find_solution(self, minimum_temperature: float, initial_temperature: float,
+                      cooling_factor: float, n: int, multipl: float = 2):
         """
         A method to run a modification of simulated annealing
+        :param multipl:
         :param initial_temperature: temperature to start
         :param n: number of iterations in the for loop
         :param cooling_factor:
@@ -46,10 +48,10 @@ class SimulatedAnnealing:
         """
 
         problem = self.problem
+        restart_threshold = multipl * len(problem.get_nodes())
 
         def simulated_annealing():
             problem.update_current_state(problem.start())
-            print("id1", problem.get_current_state())
             best_solution = problem.get_current_state()
             best_score = problem.get_cost(best_solution)
             stagnation_counter = 0
@@ -62,6 +64,7 @@ class SimulatedAnnealing:
                     current_cost = problem.get_cost(problem.get_current_state())
                     future_cost = problem.get_cost(future_state)
                     energy_change = future_cost - current_cost
+                    print(problem.get_current_state())
                     if energy_change > 0 or (
                             energy_change <= 0 and random.uniform(0, 1) < probability(energy_change, temperature)):
                         problem.update_current_state(future_state)
@@ -70,32 +73,38 @@ class SimulatedAnnealing:
                     else:
                         stagnation_counter += 1  # Increment stagnation counter
 
-                    if current_cost > best_score:
+                    if len(problem.get_current_state()) > restart_threshold:
+                        problem.update_current_state(problem.start())
+                    if problem.is_solution(problem.get_current_state()) and current_cost > best_score:
+                        print(f"am solution {problem.get_current_state()}")
                         best_solution = problem.get_current_state()
                         best_score = current_cost
                 temperature *= cooling_factor  # Cool down
             problem.update_current_state(best_solution)
 
-        while not (problem.is_solution(problem.get_current_state())):
-            simulated_annealing()
+            while not (problem.is_solution(problem.get_current_state())):
+                simulated_annealing()
+
+        simulated_annealing()
 
         return problem.get_current_state(), 1 / problem.get_cost(problem.get_current_state())
 
     def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
-                  cooling_factor: float, n: int):
+                  cooling_factor: float, n: int, multipl: float = 2):
         """
         Run find_solution x times see parameters on find_solution method
         """
 
         best_solution, best_distance = [], float('inf')
         for _ in range(x):
-            solution, distance = self.find_solution(minimum_temperature, initial_temperature, cooling_factor, n)
+            solution, distance = self.find_solution(minimum_temperature, initial_temperature, cooling_factor, n, multipl=multipl)
             if distance < best_distance:
                 best_solution, best_distance = solution, distance
         return best_solution, best_distance
 
-    def get_best_parameters(self, parameters, minimum_temperature=10, executions_per_combination=10):
+    def get_best_parameters(self, parameters, minimum_temperature=10, executions_per_combination=10, multipl: int = 2):
         """
+        :param multipl:
         :param parameters: dictionary containing the parameters and a list of values to test
         :param minimum_temperature: fixed parameter
         :param executions_per_combination: int
@@ -114,7 +123,8 @@ class SimulatedAnnealing:
                     initial_temperature=initial_temperature,
                     n=n,
                     cooling_factor=cooling_factor,
-                    minimum_temperature=minimum_temperature)
+                    minimum_temperature=minimum_temperature,
+                    multipl=multipl)
                 end_time = time.time()
                 time_elapsed = end_time - start_time
 
@@ -135,7 +145,7 @@ class SimulatedAnnealing:
 
         return best_results
 
-    def plot_n_results(self, num_runs, minimum_temperature, initial_temperature, cooling_factor, n):
+    def plot_n_results(self, num_runs, minimum_temperature, initial_temperature, cooling_factor, n, multipl: float = 2):
         """
         Runs the simulated annealing solution method multiple times and plots a histogram of the distances found.
 
@@ -145,6 +155,7 @@ class SimulatedAnnealing:
             n: Number of iterations per single temperature in simulated annealing.
             cooling_factor: Factor by which the temperature is decreased in each iteration.
             minimum_temperature: Minimum temperature to stop the annealing process.
+            :param multipl:
         """
 
         distances = []
@@ -154,7 +165,8 @@ class SimulatedAnnealing:
                 initial_temperature=initial_temperature,
                 n=n,
                 cooling_factor=cooling_factor,
-                minimum_temperature=minimum_temperature)
+                minimum_temperature=minimum_temperature,
+                multipl=multipl)
             if distance == float('inf'):
                 distance = -1
             distances.append(distance)
@@ -166,30 +178,36 @@ class SimulatedAnnealing:
         plt.ylabel('Frecuencia')
         plt.show()
 
-
-# Testing purposes
-config = configparser.ConfigParser()
-config.read('config.ini')
-db_host = config.get('Database', 'DB_HOST')
-db_user = config.get('Database', 'DB_USER')
-db_password = config.get('Database', 'DB_PASSWORD')
-
-graph_data = get_graph_data(db_host,
-                            db_user, db_password)
-
-driver = SessionManager()
-queries = constants.queries_dict
+#
+# # Testing purposes
+# config = configparser.ConfigParser()
+# config.read('config.ini')
+# db_host = config.get('Database', 'DB_HOST')
+# db_user = config.get('Database', 'DB_USER')
+# db_password = config.get('Database', 'DB_PASSWORD')
+#
+# graph_data = get_graph_data(db_host,
+#                             db_user, db_password)
+#
+# driver = SessionManager()
+# queries = constants.queries_dict
 # try:
+#     driver.execute(queries['drop_virtual'])
 #     driver.execute(queries['create_virtual'])
 # except:
 #     print("Subgrafo ya existe")
-
-pagerank = driver.bring_data(queries['page_rank'])
-degree = driver.bring_data(queries['degree'])
-data = pd.merge(pagerank, degree, on='name')
-
-tsp = TSP(graph_data, 'Hub', data)
-
-simulated_annealing = SimulatedAnnealing(tsp)
-print(simulated_annealing.best_of_x(x=10, initial_temperature=500, n=15,
-                                    cooling_factor=0.5, minimum_temperature=5))
+#
+# pagerank = driver.bring_data(queries['page_rank'])
+# degree = driver.bring_data(queries['degree'])
+# closeness = driver.bring_data(queries['closeness'])
+# clustering = driver.bring_data(queries['clustering'])
+# data = pd.merge(pagerank, degree, on='name')
+# data = pd.merge(data, closeness, on='name')
+# data = pd.merge(data, clustering, on='name')
+#
+# print(data)
+# tsp = TSP(graph_data, 'l1', data)
+#
+# simulated_annealing = SimulatedAnnealing(tsp)
+# print(simulated_annealing.best_of_x(x=10, initial_temperature=500, n=15,
+#                                     cooling_factor=0.5, minimum_temperature=5, multipl=1.5))

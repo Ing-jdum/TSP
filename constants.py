@@ -1,4 +1,7 @@
 queries_dict = {
+    'drop_virtual': '''
+        CALL gds.graph.drop('virtual')
+    ''',
     'create_virtual': '''
        CALL gds.graph.project('virtual',
           'Location',
@@ -19,6 +22,21 @@ queries_dict = {
         WITH gds.util.asNode(nodeId) AS node, degree
         RETURN node.name AS name, degree
         ORDER BY degree DESC;
-    '''
+    ''',
 
+    'closeness': '''
+        CALL gds.closeness.stream('virtual')
+        YIELD nodeId, score AS closeness
+        WITH gds.util.asNode(nodeId) AS node, closeness
+        RETURN node.name AS name, toFloat(closeness) AS closeness
+        ORDER BY closeness DESC;
+    ''',
+
+    'clustering': '''
+        CALL gds.localClusteringCoefficient.stream('virtual')
+        YIELD nodeId, localClusteringCoefficient
+        WITH gds.util.asNode(nodeId) AS node, localClusteringCoefficient
+        RETURN node.name AS name, toFloat(localClusteringCoefficient) AS clustering
+        ORDER BY clustering DESC;
+    '''
 }

@@ -103,6 +103,16 @@ class Problem(ABC):
         pass
 
     @abstractmethod
+    def get_nodes(self):
+        """
+        Retrieve the current state of the problem.
+
+        Returns:
+            The current state of the problem.
+        """
+        pass
+
+    @abstractmethod
     def update_current_state(self, state):
         """
         Update the problem's current state to the given state.

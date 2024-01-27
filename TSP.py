@@ -1,4 +1,5 @@
 import random
+import pandas as pd
 from interfaces import Problem
 
 
@@ -18,7 +19,7 @@ class TSP(Problem):
         self.start_node = start_node
         self.graph_data = graph_data
         self.distance_dict = self.get_distance_dict()
-        self.nodes = self.get_nodes()
+        self.nodes = self.init_nodes()
         self.initial_state = self.start()
         self.state = self.initial_state
         self.centrality_df = centrality_df
@@ -32,12 +33,9 @@ class TSP(Problem):
             list: A list that is valid of nodes starting with the start node.
         """
 
-        # Extract all unique nodes
-        nodes = self.get_nodes()
-
         # Choose a start node
         current_node = self.start_node
-        path = []
+        path = [current_node]
         visited = {current_node}
 
         while True:
@@ -45,18 +43,20 @@ class TSP(Problem):
             possible_moves = [conn for conn in self.graph_data if
                               conn['start'] == current_node and conn['end'] not in visited]
 
-            if len(path) > 0.5 * len(self.get_nodes()):
-                break  # Break if there are no unvisited nodes to move to
+            if len(path) > 0.5 * len(self.get_nodes()) or not possible_moves:
+                break
 
             # Choose a random connection from the possible moves
+
             next_move = random.choice(possible_moves)
 
             # Update the current node, path, and visited nodes
             current_node = next_move['end']
+            path.append(current_node)
             visited.add(current_node)
         return path
 
-    def get_nodes(self):
+    def init_nodes(self):
         """
         Extracts nodes from the graph data, ensuring the start node is first in the list.
 
@@ -100,7 +100,7 @@ class TSP(Problem):
                 available_moves.append(end_node)
             elif end_node == last_node and start_node and start_node not in available_moves:
                 available_moves.append(start_node)
-        print(f"tour : {tour[-1]}, memory {self.memory}, moves: {available_moves}")
+        # print(f"state:{self.state}, tour : {tour}, memory {self.memory}, moves: {available_moves}")
 
         return available_moves
 
@@ -113,17 +113,18 @@ class TSP(Problem):
         """
         available_moves = self.get_available_moves()
         state = self.generate_random_future_state(available_moves)
-
-        while not self.validate_state(state):
-            state = self.generate_random_future_state(available_moves)
         return state
 
     def generate_random_future_state(self, available_moves):
         """Perform a transformation to the current state
         to create a new one"""
-        func = random.choice([0, 1])
+        func = random.choice([0, 1, 2, 3, 4])
         if func == 0:
             state = self.transition_to_highest_centrality(available_moves, 'pagerank')
+        elif func == 1:
+            state = self.transition_to_highest_centrality(available_moves, 'clustering')
+        elif func == 2:
+            state = self.transition_to_highest_centrality(available_moves, 'closeness')
         else:
             state = self.transition_to_highest_centrality(available_moves, 'degree')
         return state
@@ -137,16 +138,26 @@ class TSP(Problem):
         :return: The name of the node with the highest centrality score.
         """
 
+        element_counts = {item: available_nodes.count(item) for item in self.state}
+        element_counts_df = pd.DataFrame(list(element_counts.items()), columns=['name', 'visit_count'])
+
+        merged_df = pd.merge(self.centrality_df, element_counts_df, on='name', how='left')
+        merged_df['visit_count'] = merged_df['visit_count'].fillna(0)
+
         # Filter the DataFrame to only include available nodes and not in memory
-        filtered_df = self.centrality_df[self.centrality_df['name']
-                                         .isin(available_nodes) & ~self.centrality_df['name'].isin(self.memory)]
+        filtered_df = merged_df[merged_df['name'].isin(available_nodes) & ~merged_df['name'].isin(self.memory)].copy()
 
         if filtered_df.empty:
             return None
 
-        # Find the row with the maximum centrality score for the given key
-        highest_centrality_row = filtered_df.loc[filtered_df[centrality_key].idxmax()]
+        # Adjust the centrality score based on visit_count
+        # (e.g., subtracting visit_count * weight from centrality score)
+        # Here, 'weight' should be chosen based on how much you want the visit count to influence the decision
+        weight = 0.9  # Example weight
+        filtered_df['adjusted_centrality'] = filtered_df[centrality_key] - (filtered_df['visit_count'] * weight)
 
+        # Find the row with the maximum adjusted centrality score
+        highest_centrality_row = filtered_df.loc[filtered_df['adjusted_centrality'].idxmax()]
         # Return the name of the node with the highest centrality score
         return highest_centrality_row['name']
 
@@ -215,21 +226,44 @@ class TSP(Problem):
 
     def get_cost(self, state):
         """
+        Calculates the cost of a given tour, taking into account the total distance
+        and penalties for missing required nodes.
+
         :param state: A tour
-        :return: the fitness
+        :return: the cost (lower is better)
         """
         total_distance = 0
-        for i in range(len(state)):
+        visited_nodes = set()
+
+        # Calculate total distance and track visited nodes
+        for i in range(len(state)):  # Adjusted to not loop back to the start automatically
             start = state[i]
-            end = state[(i + 1) % len(state)]
-            # Check if the connection exists
+            end = state[(i + 1) % len(state)]  # Adjusted to ensure proper indexing
+            visited_nodes.add(start)  # Track visited nodes
+
+            # Check if the connection exists and add its distance
             if (start, end) in self.distance_dict:
                 total_distance += self.distance_dict[(start, end)]
-            elif (end, start) in self.distance_dict:
-                total_distance += self.distance_dict[(start, end)]
+            elif (end, start) in self.distance_dict:  # Fixed to properly check reverse direction
+                total_distance += self.distance_dict[(end, start)]
             else:
-                total_distance = float('inf')
-        return 1 / total_distance
+                # If a connection doesn't exist, assign a large penalty
+                total_distance += float('inf')
+                break  # Exit early as the tour is invalid
+
+        # Ensure the last node is also considered visited
+        visited_nodes.add(state[-1])
+
+        # Calculate penalties for missing nodes
+        missing_nodes = set(self.nodes) - visited_nodes
+        penalty_per_missing_node = 10000  # Adjust based on your distance scale
+        total_penalty = penalty_per_missing_node * len(missing_nodes)
+
+        # Combine total distance and penalties
+        total_cost = total_distance + total_penalty
+
+        # Return the adjusted fitness
+        return 1/total_cost
 
     def get_initial_state(self):
         """
@@ -250,3 +284,10 @@ class TSP(Problem):
         :return: None
         """
         self.state = state
+
+    def get_nodes(self):
+        """
+        Return the possible cities
+        :return: list of nodes
+        """
+        return self.nodes
