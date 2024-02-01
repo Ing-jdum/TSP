@@ -11,6 +11,7 @@ from collections import defaultdict
 import statistics
 import time
 import matplotlib.pyplot as plt
+import numpy as np
 
 from utils import get_centrality_data, get_data
 
@@ -34,7 +35,16 @@ class SimulatedAnnealing:
 
     def find_solution(self, minimum_temperature: float, initial_temperature: float,
                       cooling_factor: float, n: int, multipl: float = 2, max_try: int = 50):
-
+        """
+        A function to find a solution to a given problem using simulated annealing
+        :param minimum_temperature: The minimum temperature for the algorithm to stop the search.
+        :param initial_temperature: Start temperature
+        :param cooling_factor: The cool down factor
+        :param n: The number of iterations before the cool down
+        :param multipl: The multiplier is used to calculate the restart threshold
+        :param max_try: The max number of tries before stop the recursion.
+        :return:
+        """
         problem = self.problem
         restart_threshold = multipl * len(problem.get_nodes())
         try_counter = 0
@@ -64,7 +74,7 @@ class SimulatedAnnealing:
                     # it will grow until restart_threshold
                     if len(problem.get_current_state()) > restart_threshold:
                         problem.update_current_state(problem.start())
-                    # if a solution if found, go and see if it's better than the current you have stored
+                    # if a solution is found, go and see if it's better than the current you have stored
                     # Even tho we are looking for a solution and not necessarily optimizing, we want a good solution.
                     if problem.is_solution(problem.get_current_state()) and current_cost > best_score:
                         best_solution = problem.get_current_state()
@@ -72,11 +82,11 @@ class SimulatedAnnealing:
                 temperature *= cooling_factor  # Cool down
             problem.update_current_state(best_solution)
 
-        if not (problem.is_solution(problem.get_current_state()) and try_counter <= max_try):
+        if (not (problem.is_solution(problem.get_current_state())) and try_counter <= max_try) or try_counter == 0:
             try_counter += 1
             simulated_annealing()
 
-        return problem.get_current_state(), 1 / problem.get_cost(problem.get_current_state())
+        return problem.get_current_state(), 1 / (problem.get_cost(problem.get_current_state())+0.00000001) # to avoid zero division error
 
     def best_of_x(self, x: int, minimum_temperature: float, initial_temperature: float,
                   cooling_factor: float, n: int, multipl: float = 2):
@@ -157,16 +167,25 @@ class SimulatedAnnealing:
                 distance = -1
             distances.append(distance)
 
+        # Calculate mean and standard deviation
+        min = np.min(distances)
+
+        # Define the threshold as 2 times the standard deviation
+        threshold = 10 * min
+
+        # Create a new list with values within the threshold
+        trimmed_data = [x for x in distances if x <= threshold]
+
         # Plotting the histogram of distances
-        plt.hist(distances, bins='auto')
+        plt.hist(trimmed_data, bins='auto')
         plt.title('Histograma de distancias')
         plt.xlabel('Distancia')
         plt.ylabel('Frecuencia')
         plt.show()
 
 
-# Testing purposes
-# generate_data(5)
+# # Testing purposes
+# generate_data(40)
 # data = pd.read_csv('distance_matrix.csv')
 # vrp_graph = GraphCreator()
 # vrp_graph.create_graph(data)

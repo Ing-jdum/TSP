@@ -5,7 +5,7 @@ from interfaces import Problem
 
 class TSP(Problem):
 
-    def __init__(self, graph_data, start_node, centrality_df):
+    def __init__(self, graph_data, start_node, centrality_df: pd.DataFrame, memory_size=2):
         """
         :param graph_data: A dictionary containing the graph
         :param start_node: A node to start the route
@@ -19,6 +19,7 @@ class TSP(Problem):
         self.state = self.initial_state
         self.centrality_df = centrality_df
         self.memory = set()
+        self.memory_size = memory_size
 
     def start(self):
         """
@@ -110,20 +111,20 @@ class TSP(Problem):
         state = self.generate_random_future_state(available_moves)
         return state
 
+    def get_available_metrics(self):
+        return self.centrality_df.columns.difference(['name']).tolist()
+
     def generate_random_future_state(self, available_moves):
         """Perform a transformation to the current state
         to create a new one"""
-        availible_metrics = ['pagerank', 'clustering', 'closeness', 'degree']
 
-        func = random.choice([0, 1, 2, 3])
-        if func == 0:
-            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
-        elif func == 1:
-            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
-        elif func == 2:
-            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
-        else:
-            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
+        available_metrics = self.get_available_metrics()
+        if not available_metrics:
+            return self.state
+
+        selected_metric = random.choice(available_metrics)
+        state = self.transition_to_highest_centrality(available_moves, selected_metric)
+
         return state
 
     def find_highest_centrality_node(self, available_nodes, centrality_key):
@@ -157,7 +158,7 @@ class TSP(Problem):
         # Return the name of the node with the highest centrality score
         return highest_centrality_row['name']
 
-    def update_memory(self, node, memory_size=2):
+    def update_memory(self, node):
         """
         Update the short-term memory with the newly visited node, ensuring it does not exceed the specified memory size.
 
@@ -168,7 +169,7 @@ class TSP(Problem):
         # one should consider modifying memory size
         self.memory.add(node)
         # Ensure the memory does not exceed the specified size by removing the oldest entry
-        if len(self.memory) > memory_size:
+        if len(self.memory) > self.memory_size:
             self.memory.pop()
 
     def transition_to_highest_centrality(self, available_moves, key):
@@ -223,6 +224,7 @@ class TSP(Problem):
         return True
 
     def heuristic(self, state):
+        # same as cost
         pass
 
     def get_cost(self, state):
