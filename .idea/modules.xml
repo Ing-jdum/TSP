@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/VRP.iml" filepath="$PROJECT_DIR$/.idea/VRP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../TSP/.idea/TSP.iml" filepath="$PROJECT_DIR$/../TSP/.idea/TSP.iml" />
     </modules>
   </component>
 </project>

@@ -113,18 +113,17 @@ class TSP(Problem):
     def generate_random_future_state(self, available_moves):
         """Perform a transformation to the current state
         to create a new one"""
-        # This can be improved so that the keys are not harcoded. Also, an exploration to find if some of them alone
-        # or a combination converge to a faster result would be nice.
+        availible_metrics = ['pagerank', 'clustering', 'closeness', 'degree']
 
-        func = random.choice([0, 1, 2, 3, 4])
+        func = random.choice([0, 1, 2, 3])
         if func == 0:
-            state = self.transition_to_highest_centrality(available_moves, 'pagerank')
+            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
         elif func == 1:
-            state = self.transition_to_highest_centrality(available_moves, 'clustering')
+            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
         elif func == 2:
-            state = self.transition_to_highest_centrality(available_moves, 'closeness')
+            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
         else:
-            state = self.transition_to_highest_centrality(available_moves, 'degree')
+            state = self.transition_to_highest_centrality(available_moves, availible_metrics[func])
         return state
 
     def find_highest_centrality_node(self, available_nodes, centrality_key):

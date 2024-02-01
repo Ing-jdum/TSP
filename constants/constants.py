@@ -1,12 +1,20 @@
 queries_dict = {
+
     'drop_virtual': '''
         CALL gds.graph.drop('virtual')
     ''',
+
     'create_virtual': '''
        CALL gds.graph.project('virtual',
           'Location',
           {CONNECTS_TO: {orientation:'UNDIRECTED'}});
    ''',
+
+    'get_data': '''
+            MATCH (a)-[r:CONNECTS_TO]->(b)
+            WHERE a.name < b.name
+            RETURN a.name AS start, b.name AS end, r.distance AS distance
+        ''',
 
     'page_rank': '''
         CALL gds.pageRank.stream('virtual')

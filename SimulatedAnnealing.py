@@ -1,19 +1,18 @@
-import configparser
 import itertools
 import math
 import random
 import pandas as pd
 
-import constants
+from utils.GenerateData import generate_data
 from TSP import TSP
+from utils.GraphCreator import GraphCreator
 from interfaces import Problem
 from collections import defaultdict
 import statistics
 import time
 import matplotlib.pyplot as plt
 
-from test_solution import get_graph_data
-from utils import SessionManager
+from utils import get_centrality_data, get_data
 
 
 def probability(energy_change, temperature):
@@ -34,50 +33,32 @@ class SimulatedAnnealing:
         self.problem = general_functions
 
     def find_solution(self, minimum_temperature: float, initial_temperature: float,
-                      cooling_factor: float, n: int, multipl: float = 2, max_stagnation: int = 500):
-        """
-        A method to run a modification of simulated annealing
-        :param max_stagnation: the limit of stagnatino to exit
-        :param multipl: a multiplier to indicate how long a solution can be.
-        :param initial_temperature: temperature to start
-        :param n: number of iterations in the for loop
-        :param cooling_factor:
-        :param minimum_temperature: temperature before breaking the loop
-        :return: best tour found if none is found it call's itself recursively
-        """
-
-        # This method has a potential flaw that if not solution exists due to unconnected nodes or something like that
-        # It will never stop calling itself until a Max Recursive Limit exception is thrown but i don't have much time
-        # Because I'm on final exams. It's an easy fix, changing the while for a for loop with a max_retry value.
+                      cooling_factor: float, n: int, multipl: float = 2, max_try: int = 50):
 
         problem = self.problem
         restart_threshold = multipl * len(problem.get_nodes())
+        try_counter = 0
 
         def simulated_annealing():
             problem.update_current_state(problem.start())
 
-            best_solution = problem.get_current_state() # at this point this might not be a solution
+            best_solution = problem.get_current_state()  # at this point this might not be a solution
             best_score = problem.get_cost(best_solution)
-            stagnation_counter = 0
             temperature = initial_temperature
+
             while temperature > minimum_temperature:
-                for _ in range(n): # This to follow the algorithm discussed during  class
-                    # if stagnation counter reached the limit, break the loop
-                    if stagnation_counter >= max_stagnation:
-                        break
+                for _ in range(n):  # This to follow the algorithm discussed during  class
                     # Calculate energy change based on possible future state
                     future_state = problem.get_random_future_state()
                     current_cost = problem.get_cost(problem.get_current_state())
                     future_cost = problem.get_cost(future_state)
                     energy_change = future_cost - current_cost
-                    # execute with probability or it's a closer state to a solution based on the cost
+
+                    # execute with probability,  or it's a closer state to a solution based on the cost
                     if energy_change > 0 or (
                             energy_change <= 0 and random.uniform(0, 1) < probability(energy_change, temperature)):
                         problem.update_current_state(future_state)
                         current_cost = future_cost  # Update current cost since state has changed
-                        stagnation_counter = 0  # Reset stagnation counter
-                    else:
-                        stagnation_counter += 1  # Increment stagnation counter
 
                     # first variation, don't let the list of the tour grow infinitely,
                     # it will grow until restart_threshold
@@ -91,10 +72,9 @@ class SimulatedAnnealing:
                 temperature *= cooling_factor  # Cool down
             problem.update_current_state(best_solution)
 
-            while not (problem.is_solution(problem.get_current_state())):
-                simulated_annealing()
-
-        simulated_annealing()
+        if not (problem.is_solution(problem.get_current_state()) and try_counter <= max_try):
+            try_counter += 1
+            simulated_annealing()
 
         return problem.get_current_state(), 1 / problem.get_cost(problem.get_current_state())
 
@@ -106,7 +86,8 @@ class SimulatedAnnealing:
 
         best_solution, best_distance = [], float('inf')
         for _ in range(x):
-            solution, distance = self.find_solution(minimum_temperature, initial_temperature, cooling_factor, n, multipl=multipl)
+            solution, distance = self.find_solution(minimum_temperature, initial_temperature, cooling_factor, n,
+                                                    multipl=multipl)
             if distance < best_distance:
                 best_solution, best_distance = solution, distance
         return best_solution, best_distance
@@ -184,34 +165,19 @@ class SimulatedAnnealing:
         plt.show()
 
 
-
-# # Testing purposes
-# config = configparser.ConfigParser()
-# config.read('config.ini')
-# db_host = config.get('Database', 'DB_HOST')
-# db_user = config.get('Database', 'DB_USER')
-# db_password = config.get('Database', 'DB_PASSWORD')
+# Testing purposes
+# generate_data(5)
+# data = pd.read_csv('distance_matrix.csv')
+# vrp_graph = GraphCreator()
+# vrp_graph.create_graph(data)
+# vrp_graph.create_virtual_graph()
+# vrp_graph.close()
 #
-# graph_data = get_graph_data(db_host,
-#                             db_user, db_password)
+# centralities = get_centrality_data()
+# data = get_data()
+# start_node = 'l1'
 #
-# driver = SessionManager()
-# queries = constants.queries_dict
-# try:
-#     driver.execute(queries['drop_virtual'])
-#     driver.execute(queries['create_virtual'])
-# except:
-#     print("Subgrafo ya existe")
-#
-# pagerank = driver.bring_data(queries['page_rank'])
-# degree = driver.bring_data(queries['degree'])
-# closeness = driver.bring_data(queries['closeness'])
-# clustering = driver.bring_data(queries['clustering'])
-# data = pd.merge(pagerank, degree, on='name')
-# data = pd.merge(data, closeness, on='name')
-# data = pd.merge(data, clustering, on='name')
-#
-# tsp = TSP(graph_data, 'Hub', data)
+# tsp = TSP(graph_data=data, start_node=start_node, centrality_df=centralities)
 #
 # simulated_annealing = SimulatedAnnealing(tsp)
 # print(simulated_annealing.best_of_x(x=10, initial_temperature=500, n=15,
