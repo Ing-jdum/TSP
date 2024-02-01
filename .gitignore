@@ -1,4 +1,4 @@
-.idea
-.venv
-._pycache
+.idea/
+.venv/
 config.ini
+__pycache__/
