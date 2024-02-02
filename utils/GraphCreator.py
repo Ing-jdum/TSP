@@ -28,6 +28,7 @@ class GraphCreator:
                 session.execute_write(self._create_node, location)
 
             # Create relationships with distances, skip diagonal entries
+            # This is a double check because we already put -1 in the diagonals before
             for i, row in df.iterrows():
                 for j, value in enumerate(row[1:]):
                     # Skip diagonal and -1 values

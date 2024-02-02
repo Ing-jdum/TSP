@@ -43,7 +43,6 @@ class TSP(Problem):
                 break
 
             # Choose a random connection from the possible moves
-
             next_move = random.choice(possible_moves)
 
             # Update the current node, path, and visited nodes
@@ -163,7 +162,6 @@ class TSP(Problem):
         Update the short-term memory with the newly visited node, ensuring it does not exceed the specified memory size.
 
         :param node: The newly visited node to add to the memory.
-        :param memory_size: The maximum size of the memory.
         """
         # the memory parameter is very important, depending on the size of the problem
         # one should consider modifying memory size
@@ -218,14 +216,14 @@ class TSP(Problem):
 
     def is_solution(self, sequence):
         # even tho this method does not verify if the last node is connected with the first, in the cost function we
-        # put a very high cost when nodes are not connected, this as well, can also be improved.
+        # put a very high cost when nodes are not connected, this can be improved.
         if not set(self.nodes).issubset(set(sequence)):
             return False  # Check if all locations are visited at least once
         return True
 
     def heuristic(self, state):
-        # same as cost
-        pass
+        # we are going to use get_cost as heuristic
+        return self.get_cost(state)
 
     def get_cost(self, state):
         """
